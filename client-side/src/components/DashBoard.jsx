@@ -27,6 +27,8 @@ const Dashboard = () => {
             if (dataFromServer.type === "connected") {
                 clientID.current = dataFromServer.clientID;
                 setConnected(true);
+            } else if (dataFromServer.type === "testing") {
+                console.log("testing message received");
             }
           };
 

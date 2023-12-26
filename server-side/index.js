@@ -11,7 +11,9 @@ const wsServer = new webSocketServer({
 });
 
 const clients = {};
+const usernames = {};
 const players = [];
+let inGame = false;
 
 const updatePlayers = () => {
   for (key in clients) {
@@ -48,6 +50,7 @@ wsServer.on("request", function (request) {
   connection.on("close", function (connection) {
     console.log(new Date() + " Peer " + userID + " disconnected.");
     delete clients[userID];
+    delete usernames[userID];
     updatePlayers();
   });
 
@@ -62,9 +65,16 @@ wsServer.on("request", function (request) {
     if (message.type === "utf8") {
       console.log("Received Message: ", message.utf8Data);
       const parsedData = JSON.parse(message.utf8Data);
+
+
       if (parsedData.type === "message") {
+        const payload = {
+          type: "message",
+          message: parsedData.msg,
+          user: usernames[parsedData.id.current],
+        };
         for (key in clients) {
-          clients[key].sendUTF(message.utf8Data);
+          clients[key].sendUTF(JSON.stringify(payload));
         }
       } else if (parsedData.type === "retrieve-players") {
         // send player list to new player
@@ -75,7 +85,21 @@ wsServer.on("request", function (request) {
         clients[parsedData.id.current].sendUTF(JSON.stringify(payload));
       } else if (parsedData.type === "new-player") {
         players.push(parsedData.user);
+        usernames[parsedData.id.current] = parsedData.user;
         updatePlayers();
+        const payload = {
+          "type": "can-start-game",
+        };
+        if (players.length == 2 && !inGame) {
+          for (key in clients) {
+            clients[key].sendUTF(JSON.stringify(payload));
+          }
+          inGame = true;
+        } else if (players.length > 2) {
+          console.log("sending the third");
+          clients[parsedData.id.current].sendUTF(JSON.stringify(payload));
+        }
+
       }
     }
   });

@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { w3cwebsocket as W3CWebSocket, client, server } from "websocket";
+import { w3cwebsocket as W3CWebSocket } from "websocket";
 import LoginPage from "./LoginPage.jsx";
 
 const Dashboard = () => {
-  // server-side data using refs
   const socketRef = useRef(null);
   const [isConnected, setConnected] = useState(false);
-  let clientID = useRef(null);
+  const clientID = useRef(null);
 
   useEffect(() => {
     let connectionAttempts = 1;
@@ -22,19 +21,19 @@ const Dashboard = () => {
         };
 
         newClient.onmessage = (message) => {
-            const dataFromServer = JSON.parse(message.data);
-    
-            if (dataFromServer.type === "connected") {
-                clientID.current = dataFromServer.clientID;
-                setConnected(true);
-            } else if (dataFromServer.type === "testing") {
-                console.log("testing message received");
-            }
-          };
+          const dataFromServer = JSON.parse(message.data);
+
+          if (dataFromServer.type === "connected") {
+            clientID.current = dataFromServer.clientID;
+            setConnected(true);
+          } else if (dataFromServer.type === "testing") {
+            console.log("testing message received");
+          }
+        };
 
         newClient.onclose = () => {
           console.log("WebSocket Client Disconnected");
-          clientID = null;
+          clientID.current = null;
           setConnected(false);
           if (connectionAttempts < maxConnectionAttempts) {
             connectionAttempts += 1;
@@ -42,23 +41,33 @@ const Dashboard = () => {
             setTimeout(tryConnect, 2000);
           }
         };
+
+        // Handle window/tab close event to close WebSocket connection
+        window.addEventListener("beforeunload", () => {
+          if (socketRef.current) {
+            socketRef.current.close();
+          }
+        });
       }
     };
 
     tryConnect();
+
+    // Cleanup: remove event listener when component unmounts
+    return () => {
+      window.removeEventListener("beforeunload", () => {
+        if (socketRef.current) {
+          socketRef.current.close();
+        }
+      });
+    };
   }, []);
 
   return (
     <div>
       <h1>Dashboard</h1>
-      {isConnected === false ? (
-        <p>Connecting</p>
-      ) : (
-        <div>
-          <p>Connected!!!!</p>
-          {isConnected ? <LoginPage connectionClient={socketRef} userID={clientID}/> : null}
-        </div>
-      )}
+      {isConnected ? <p>Connected!!!!</p> : <p>Connecting</p>}
+      {isConnected ? <LoginPage connectionClient={socketRef} userID={clientID} /> : null}
     </div>
   );
 };

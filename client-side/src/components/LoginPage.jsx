@@ -11,7 +11,8 @@ const LoginPage = (props) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [players, setPlayers] = useState([]);
-  const [messages, setMessages] = useState([]);
+
+  const [usedName, setUsedName] = useState(false);
 
   clientID = props.userID;
 
@@ -29,6 +30,16 @@ const LoginPage = (props) => {
 
         if (dataFromServer.type === "getting-players") {
           setPlayers(dataFromServer.players);
+        } else if (dataFromServer.type === "username-taken") {
+          setUsedName(true);
+        } else if (dataFromServer.type === "username-confirmed") {
+          setIsLoggedIn(true);
+          setUsedName(false);
+        } else {
+          console.log(
+            "registered unknown message type in LoginPage",
+            dataFromServer.type
+          );
         }
       };
 
@@ -50,7 +61,6 @@ const LoginPage = (props) => {
       id: clientID,
     };
     clientRef.send(JSON.stringify(serverPackage));
-    setIsLoggedIn(true);
   };
 
   const updatePlayers = (players) => {
@@ -62,6 +72,7 @@ const LoginPage = (props) => {
   return (
     <div>
       <h1>Login Page</h1>
+      {usedName ? <p>Username already taken</p> : null}
       <h2>Active Players</h2>
       {players.map((player, index) => (
         <p key={index}>{player}</p>

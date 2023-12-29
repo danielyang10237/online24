@@ -140,14 +140,6 @@ const NumberWheel = (props) => {
   return (
     <div>
       <h1>Each Number</h1>
-      <p>number one</p>
-      {numberOne}
-      <p>number two</p>
-      {numberTwo}
-      <p>number three</p>
-      {numberThree}
-      <p>number four</p>
-      {numberFour}
       <h2>Options</h2>
       {numberOne > 0 ? (
         <button onClick={() => handleNumber(numberOne, 1)}>{numberOne}</button>

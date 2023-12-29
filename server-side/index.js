@@ -12,10 +12,14 @@ const wsServer = new webSocketServer({
   httpServer: server,
 });
 
-const clients = {};
-const usernames = {};
+let clients = {};
+let usernames = {};
+let playerPoints = {};
+
 let players = [];
 let inGame = false;
+let currentGame = null;
+let totalRounds = 3;
 
 const updatePlayers = () => {
   for (key in clients) {
@@ -27,12 +31,75 @@ const updatePlayers = () => {
   }
 };
 
+const initializePoints = () => {
+  for (key in usernames) {
+    playerPoints[usernames[key]] = 0;
+  }
+};
+
 const getUniqueID = () => {
   const s4 = () =>
     Math.floor((1 + Math.random()) * 0x10000)
       .toString(16)
       .substring(1);
   return s4() + s4();
+};
+
+const roundOver = () => {
+  console.log("ending the round");
+  const payload = {
+    type: "round-over",
+    points: playerPoints,
+  };
+  for (key in clients) {
+    clients[key].sendUTF(JSON.stringify(payload));
+  }
+  setTimeout(() => {
+    if (totalRounds > 1) {
+      startNewRound();
+      totalRounds--;
+    } else {
+      const payload2 = {
+        type: "game-over",
+        points: playerPoints,
+      };
+      for (key in clients) {
+        clients[key].sendUTF(JSON.stringify(payload2));
+      }
+      totalRounds = 3;
+      inGame = false;
+      clients = {};
+      usernames = {};
+      playerPoints = {};
+      players = [];
+      inGame = false;
+      currentGame = null;
+    }
+  }, 1000);
+};
+
+const startNewRound = () => {
+  let countdown = 3;
+  const messageInterval = setInterval(() => {
+    if (countdown >= 0) {
+      const payload4 = {
+        type: "game-starting",
+        countdown: countdown,
+      };
+      for (key in clients) {
+        clients[key].sendUTF(JSON.stringify(payload4));
+      }
+      if (countdown === 0) {
+        currentGame = new NewGame(clients, usernames, roundOver, playerPoints);
+        currentGame.send_round_info();
+        countdown--;
+        return;
+      }
+      countdown--;
+    } else {
+      clearInterval(messageInterval);
+    }
+  }, 1000);
 };
 
 wsServer.on("request", function (request) {
@@ -118,27 +185,15 @@ wsServer.on("request", function (request) {
           }
           break;
         case "start-game":
-          let countdown = 3;
-          const messageInterval = setInterval(() => {
-            if (countdown >= 0) {
-              const payload4 = {
-                type: "game-starting",
-                countdown: countdown,
-              };
-              for (key in clients) {
-                clients[key].sendUTF(JSON.stringify(payload4));
-              }
-              if (countdown === 0) {
-                const game = new NewGame(clients, players);
-                game.send_round_info();
-                countdown--;
-                return;
-              }
-              countdown--;
-            } else {
-              clearInterval(messageInterval);
-            }
-          }, 1000);
+          initializePoints();
+          startNewRound();
+          break;
+        case "found-solution":
+          if (currentGame) {
+            currentGame.solutionFound(parsedData.id.current);
+          } else {
+            console.log("no game in progress or found");
+          }
           break;
         default:
           console.log("unknown message type", parsedData.type);

@@ -1,20 +1,48 @@
 const game_combos = require("./combinations.js");
 
+const round_duration = 50000;
+
 class NewGame {
-  constructor(clients, players) {
+  constructor(clients, players, endRound, totalPoints) {
     this.clients = clients;
     this.players = players;
     this.startTime = Date.now();
     this.all_sequences = game_combos;
+    this.rounds_played = 10;
+    this.roundPoints = {};
+    this.totalPoints = totalPoints;
+    this.solvers = new Set();
+    this.endRound = endRound;
+  }
+
+  sendToAllUsers(payload) {
+    for (key in this.clients) {
+      this.clients[key].sendUTF(JSON.stringify(payload));
+    }
+  }
+
+  closeRoundSequence() {
+    for (key in this.players) {
+        this.totalPoints[this.players[key]] += this.roundPoints[this.players[key]];
+    }
+    this.endRound();
   }
 
   clearRound() {
-    const payload = {
-      type: "round-over"
-    };
-    // further implementation for winners
-    for (key in this.clients) {
-      this.clients[key].sendUTF(JSON.stringify(payload));
+    if (this.solvers.size <= Object.keys(this.players).length) {
+      // give all the players who didn't find the solution 0 points
+      for (key in this.players) {
+        if (!this.roundPoints[this.players[key]]) {
+          this.roundPoints[this.players[key]] = 0;
+          this.sendToAllUsers({
+            type: "user-found-solution",
+            user: this.players[key],
+            points: 0,
+          });
+        }
+      }
+
+      this.closeRoundSequence();
     }
   }
 
@@ -29,8 +57,33 @@ class NewGame {
       this.clients[key].sendUTF(JSON.stringify(payload));
     }
     setTimeout(() => {
-        this.clearRound();
-      }, 10000);
+      this.clearRound();
+    }, round_duration);
+  }
+
+  solutionFound(id) {
+    const foundTime = Date.now();
+    const difference = foundTime - this.startTime;
+    const points = Math.floor((round_duration - difference) / 100);
+    const user = this.players[id];
+
+    this.solvers.add(id);
+
+    const payload = {
+      type: "user-found-solution",
+      user: user,
+      points: points,
+    };
+
+    this.roundPoints[user] = points;
+
+    for (key in this.clients) {
+      this.clients[key].sendUTF(JSON.stringify(payload));
+    }
+
+    if (this.solvers.size === Object.keys(this.players).length) {
+      this.closeRoundSequence();
+    }
   }
 }
 

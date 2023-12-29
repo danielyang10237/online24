@@ -2,6 +2,7 @@ import { React, useState, useEffect, useRef } from "react";
 import { w3cwebsocket as W3CWebSocket, client, server } from "websocket";
 import { Card, Avatar, Input, Typography } from "antd";
 import NumberWheel from "./NumberWheel.jsx";
+import KeyValueList from "./KeyValueList.jsx";
 
 let clientRef = null;
 let clientID = null;
@@ -11,9 +12,10 @@ const { Search } = Input;
 const GameConsole = (props) => {
   const [messages, setMessages] = useState([]);
   const [startGameButton, setStartGameButton] = useState(false);
-  const [inGame, setInGame] = useState(false);
   const [numbers, setNumbers] = useState([]);
   const [gameStartCount, setGameStartCount] = useState(-1);
+  const [roundUserScores, setRoundUserScores] = useState([]);
+  const [totalUserScores, setTotalUserScores] = useState([]);
 
   useEffect(() => {
     clientID = props.userID;
@@ -49,14 +51,28 @@ const GameConsole = (props) => {
           case "game-starting":
             console.log("game starting", dataFromServer.countdown);
             setGameStartCount(dataFromServer.countdown);
-            setInGame(true);
             break;
           case "new-round":
             setNumbers(dataFromServer.numbers);
             setGameStartCount(-2);
             break;
           case "round-over":
-            console.log("round over", dataFromServer);
+            setGameStartCount(-3);
+            setTotalUserScores(dataFromServer.points);
+            setRoundUserScores([]);
+            console.log("round over", dataFromServer.points);
+            break;
+          case "user-found-solution":
+            setRoundUserScores((roundUserScores) => [
+              ...roundUserScores,
+              {
+                user: dataFromServer.user,
+                points: dataFromServer.points,
+              },
+            ]);
+            break;
+          case "game-over":
+            props.gameOver();
             break;
           default:
             console.log("registered unknown message type", dataFromServer.type);
@@ -113,6 +129,8 @@ const GameConsole = (props) => {
   return (
     <div>
       <h1>Game Console</h1>
+      <h2>Total Points</h2>
+      <KeyValueList data={totalUserScores} />
       <h2>Game</h2>
       {gameStartCount === -1 ? (
         startGameButton ? (
@@ -125,7 +143,17 @@ const GameConsole = (props) => {
       ) : gameStartCount === -2 ? (
         <NumberWheel numbers={numbers} isWin={foundSolution} />
       ) : (
-        <p>Congrats.. Waiting for next round!</p>
+        <>
+          <p>Congrats.. Waiting for next round!</p>
+          <h3>Scores from this round</h3>
+          <ul>
+            {roundUserScores.map((userScore, index) => (
+              <li key={index}>
+                {userScore.user} - {userScore.points}
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       <h2>Chat</h2>
       <Search

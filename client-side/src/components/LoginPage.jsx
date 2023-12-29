@@ -16,6 +16,10 @@ const LoginPage = (props) => {
 
   clientID = props.userID;
 
+  const gameOver = () => {
+    setIsLoggedIn(false);
+  }
+
   useEffect(() => {
     if (
       props.connectionClient.current &&
@@ -83,6 +87,7 @@ const LoginPage = (props) => {
             updatePlayers={updatePlayers}
             connectionClient={clientRef}
             userID={clientID}
+            gameOver={gameOver}
           />
         </div>
       ) : (

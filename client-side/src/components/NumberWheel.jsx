@@ -37,6 +37,10 @@ const NumberWheel = (props) => {
   }
 
   const handleOperator = (selectedOperator) => {
+    if (operator !== null) {
+      operator = null;
+      return;
+    }
     if (prevNumberValue !== null && prevNumberIndex !== null) {
       operator = selectedOperator;
     }
@@ -89,32 +93,23 @@ const NumberWheel = (props) => {
     switch (latterIndex) {
       case 1:
         setNumberOne(calculatedNumber);
-        operator = null;
-        prevNumberValue = calculatedNumber;
-        prevNumberIndex = latterIndex;
         break;
       case 2:
         setNumberTwo(calculatedNumber);
-        operator = null;
-        prevNumberValue = calculatedNumber;
-        prevNumberIndex = latterIndex;
         break;
       case 3:
         setNumberThree(calculatedNumber);
-        operator = null;
-        prevNumberValue = calculatedNumber;
-        prevNumberIndex = latterIndex;
         break;
       case 4:
         setNumberFour(calculatedNumber);
-        operator = null;
-        prevNumberValue = calculatedNumber;
-        prevNumberIndex = latterIndex;
         break;
       default:
         console.log("unknown number latter");
         break;
     }
+    operator = null;
+    prevNumberValue = calculatedNumber;
+    prevNumberIndex = latterIndex;
   };
 
   const handleNumber = (number, index) => {

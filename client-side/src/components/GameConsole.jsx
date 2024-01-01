@@ -17,6 +17,12 @@ const GameConsole = (props) => {
   const [roundUserScores, setRoundUserScores] = useState([]);
   const [totalUserScores, setTotalUserScores] = useState([]);
 
+  // useEffect(() => {
+  //   if (props.isReadyButton) {
+  //     setStartGameButton(true);
+  //   }
+  // }, [props.isReadyButton]);
+
   useEffect(() => {
     clientID = props.userID;
 
@@ -30,10 +36,10 @@ const GameConsole = (props) => {
 
         switch (dataFromServer.type) {
           case "message":
-            console.log(
-              "got message from server GameConsole: ",
-              dataFromServer
-            );
+            // console.log(
+            //   "got message from server GameConsole: ",
+            //   dataFromServer
+            // );
             setMessages((prevMessages) => [
               ...prevMessages,
               {
@@ -63,16 +69,22 @@ const GameConsole = (props) => {
             console.log("round over", dataFromServer.points);
             break;
           case "user-found-solution":
-            setRoundUserScores((roundUserScores) => [
-              ...roundUserScores,
+            setRoundUserScores((prevScores) => [
+              ...prevScores,
               {
                 user: dataFromServer.user,
                 points: dataFromServer.points,
               },
             ]);
+            console.log("roundUserScores", roundUserScores);
             break;
           case "game-over":
-            props.gameOver();
+            clientRef = null;
+            props.gameOver(dataFromServer.points);
+            break;
+          case "lack-of-players":
+            clientRef = null;
+            props.notEnoughPlayers();
             break;
           default:
             console.log("registered unknown message type", dataFromServer.type);

@@ -13,6 +13,7 @@ class NewGame {
     this.totalPoints = totalPoints;
     this.solvers = new Set();
     this.endRound = endRound;
+    this.roundTimer = null;
   }
 
   sendToAllUsers(payload) {
@@ -20,10 +21,10 @@ class NewGame {
       this.clients[key].sendUTF(JSON.stringify(payload));
     }
   }
-
   closeRoundSequence() {
     for (key in this.players) {
-        this.totalPoints[this.players[key]] += this.roundPoints[this.players[key]];
+      this.totalPoints[this.players[key]] +=
+        this.roundPoints[this.players[key]];
     }
     this.endRound();
   }
@@ -56,9 +57,22 @@ class NewGame {
     for (key in this.clients) {
       this.clients[key].sendUTF(JSON.stringify(payload));
     }
-    setTimeout(() => {
+
+    // Timer to end the round
+    this.roundTimer = setTimeout(() => {
+      console.log("times up before everyone found solution");
       this.clearRound();
     }, round_duration);
+  }
+
+  terminateRound() {
+    console.log("user quit, terminating round")
+    if (this.roundTimer) {
+      clearTimeout(this.roundTimer);
+      this.clearRound();
+    } else {
+      console.log("No active timer to clear");
+    }
   }
 
   solutionFound(id) {
@@ -69,20 +83,23 @@ class NewGame {
 
     this.solvers.add(id);
 
+    this.roundPoints[user] = points;
+
     const payload = {
       type: "user-found-solution",
       user: user,
       points: points,
     };
 
-    this.roundPoints[user] = points;
-
     for (key in this.clients) {
       this.clients[key].sendUTF(JSON.stringify(payload));
     }
 
     if (this.solvers.size === Object.keys(this.players).length) {
+      // stop the timer
+      clearTimeout(this.roundTimer);
       this.closeRoundSequence();
+      console.log("everyone found the solution - onto the next round");
     }
   }
 }

@@ -19,7 +19,7 @@ let playerPoints = {};
 let players = [];
 let countdownInterval = null;
 let currentGame = null;
-let totalRounds = 2;
+let totalRounds = 4;
 
 const updatePlayers = () => {
   for (key in clients) {
@@ -60,7 +60,8 @@ const roundOver = () => {
     }
   }
   setTimeout(() => {
-    if (totalRounds > 1) {
+    console.log("starting new round...", totalRounds);
+    if (totalRounds > 0) {
       startNewRound();
       totalRounds--;
     } else {
@@ -83,6 +84,7 @@ const roundOver = () => {
 };
 
 const startNewRound = () => {
+  console.log("started new round with totalPoints", totalRounds);
   let countdown = 3;
   countdownInterval = setInterval(() => {
     if (countdown >= 0) {

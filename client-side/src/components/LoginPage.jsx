@@ -7,7 +7,6 @@ import LeaderboardModal from "./LeaderboardModal.jsx";
 
 const { Search } = Input;
 let clientRef = null;
-let clientID = null;
 
 const LoginPage = (props) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -17,32 +16,26 @@ const LoginPage = (props) => {
 
   const [leaderboard, setLeaderboard] = useState(null);
   const [gameInProgress, setGameInProgress] = useState(null);
-
-  // const [isReadyButton, setIsReadyButton] = useState(false);
-
-  clientID = props.userID;
+  const [username, setUsername] = useState(null);
 
   const gameOver = (props) => {
     setLeaderboard(props);
-    console.log(leaderboard, props);
+    // console.log("game over LoginPage", leaderboard, props);
     setIsLoggedIn(false);
     setUpServerRecieve();
     // setIsReadyButton(false);
   };
-
-  const needMorePlayers = () => {
-    setIsLoggedIn(false);
-    setLeaderboard(null);
-    setUpServerRecieve();
-  }
 
   const setUpServerRecieve = () => {
     clientRef.onmessage = (message) => {
       const dataFromServer = JSON.parse(message.data);
 
       if (dataFromServer.type === "getting-players") {
+        // update the current player list
         setPlayers(dataFromServer.players);
+        // console.log("got players", dataFromServer.players);
       } else if (dataFromServer.type === "username-taken") {
+        // lets the user know the username was already taken
         setUsedName(true);
       } else if (dataFromServer.type === "game-in-progress") {
         setGameInProgress(dataFromServer.round);
@@ -62,6 +55,7 @@ const LoginPage = (props) => {
   };
 
   useEffect(() => {
+
     if (
       props.connectionClient.current &&
       props.connectionClient.current.readyState === W3CWebSocket.OPEN &&
@@ -69,25 +63,27 @@ const LoginPage = (props) => {
     ) {
       clientRef = props.connectionClient.current;
       console.log("WebSocket connection established");
+      setUsername(props.clientID); 
 
       setUpServerRecieve();
 
       // Send message to the server to get player list
       clientRef.send(
         JSON.stringify({
-          type: "retrieve-players",
-          id: clientID,
-          msg: "render successful",
+          type: "retrieve-players"
         })
       );
     }
+
   }, [props.connectionClient]);
 
   const setNewUser = (user) => {
+    // console.log("LoginPage User set to ", username);
+
     const serverPackage = {
       type: "new-player",
       user: user,
-      id: clientID,
+      id: props.clientID
     };
     clientRef.send(JSON.stringify(serverPackage));
   };
@@ -113,9 +109,8 @@ const LoginPage = (props) => {
           <GameConsole
             updatePlayers={updatePlayers}
             connectionClient={clientRef}
-            userID={clientID}
+            userID={username}
             gameOver={gameOver}
-            notEnoughPlayers={needMorePlayers}
           />
         </div>
       ) : (

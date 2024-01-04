@@ -4,8 +4,12 @@ import LoginPage from "./LoginPage.jsx";
 
 const Dashboard = () => {
   const socketRef = useRef(null);
+  const [clientID, setClientID] = useState(null); 
   const [isConnected, setConnected] = useState(false);
-  const clientID = useRef(null);
+
+  // if (localStorage.getItem('username')) {
+    
+  // }
 
   useEffect(() => {
     let connectionAttempts = 1;
@@ -24,7 +28,7 @@ const Dashboard = () => {
           const dataFromServer = JSON.parse(message.data);
 
           if (dataFromServer.type === "connected") {
-            clientID.current = dataFromServer.clientID;
+            setClientID(dataFromServer.id);
             setConnected(true);
           } else if (dataFromServer.type === "testing") {
             console.log("testing message received");
@@ -33,7 +37,6 @@ const Dashboard = () => {
 
         newClient.onclose = () => {
           console.log("WebSocket Client Disconnected");
-          clientID.current = null;
           setConnected(false);
           if (connectionAttempts < maxConnectionAttempts) {
             connectionAttempts += 1;
@@ -67,7 +70,7 @@ const Dashboard = () => {
     <div>
       <h1>Dashboard</h1>
       {isConnected ? <p>Connected!!!!</p> : <p>Connecting</p>}
-      {isConnected ? <LoginPage connectionClient={socketRef} userID={clientID} /> : null}
+      {isConnected ? <LoginPage connectionClient={socketRef} clientID={clientID} /> : null}
     </div>
   );
 };

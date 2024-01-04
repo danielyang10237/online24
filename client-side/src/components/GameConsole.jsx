@@ -10,18 +10,14 @@ let clientID = null;
 const { Search } = Input;
 
 const GameConsole = (props) => {
-  const [messages, setMessages] = useState([]);
-  const [startGameButton, setStartGameButton] = useState(false);
-  const [numbers, setNumbers] = useState([]);
-  const [gameStartCount, setGameStartCount] = useState(-1);
-  const [roundUserScores, setRoundUserScores] = useState([]);
-  const [totalUserScores, setTotalUserScores] = useState([]);
+  const [totalUserScores, setTotalUserScores] = useState({});
 
-  // useEffect(() => {
-  //   if (props.isReadyButton) {
-  //     setStartGameButton(true);
-  //   }
-  // }, [props.isReadyButton]);
+  const [startGameButton, setStartGameButton] = useState(false);
+  const [gameStartCount, setGameStartCount] = useState(-1);
+
+  const [roundUserScores, setRoundUserScores] = useState([]);
+  const [numbers, setNumbers] = useState([]);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     clientID = props.userID;
@@ -59,14 +55,14 @@ const GameConsole = (props) => {
             setGameStartCount(dataFromServer.countdown);
             break;
           case "new-round":
+            setRoundUserScores([]);
             setNumbers(dataFromServer.numbers);
             setGameStartCount(-2);
             break;
           case "round-over":
             setGameStartCount(-3);
-            setTotalUserScores(dataFromServer.points);
-            setRoundUserScores([]);
             console.log("round over", dataFromServer.points);
+            setTotalUserScores(dataFromServer.points);
             break;
           case "user-found-solution":
             setRoundUserScores((prevScores) => [
@@ -76,29 +72,19 @@ const GameConsole = (props) => {
                 points: dataFromServer.points,
               },
             ]);
-            console.log("roundUserScores", roundUserScores);
             break;
           case "game-over":
             clientRef = null;
             props.gameOver(dataFromServer.points);
             break;
           case "lack-of-players":
-            clientRef = null;
-            props.notEnoughPlayers();
+            setStartGameButton(false);
             break;
           default:
             console.log("registered unknown message type", dataFromServer.type);
             break;
         }
       };
-
-      clientRef.send(
-        JSON.stringify({
-          type: "retrieve-players",
-          id: clientID,
-          msg: "render successful",
-        })
-      );
 
       clientRef.send(
         JSON.stringify({
@@ -112,14 +98,13 @@ const GameConsole = (props) => {
   const sendMessage = (message) => {
     const serverPackage = {
       type: "message",
-      id: clientID,
+      username: clientID,
       msg: message,
     };
     clientRef.send(JSON.stringify(serverPackage));
   };
 
   const startGame = () => {
-    console.log("starting button clicked game");
     const serverPackage = {
       type: "start-game",
       id: clientID,
@@ -129,9 +114,10 @@ const GameConsole = (props) => {
   };
 
   const foundSolution = () => {
+    // console.log("clientID in client", clientID);
     const serverPackage = {
       type: "found-solution",
-      id: clientID,
+      username: clientID,
       msg: "found solution",
     };
     clientRef.send(JSON.stringify(serverPackage));

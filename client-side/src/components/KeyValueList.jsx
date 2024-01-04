@@ -1,4 +1,4 @@
-import React from 'react';
+import {React, useEffect} from 'react';
 
 const KeyValueList = ({ data }) => {
   // Mapping through the object keys and creating list elements for each key-value pair
@@ -9,9 +9,13 @@ const KeyValueList = ({ data }) => {
     </li>
   ));
 
+  // useEffect(() => {
+  //   console.log('data in KeyValueList', data);
+  // }, [data]);
+
   return (
     <div>
-      <h2>Key-Value Pairs:</h2>
+      <h2>Cumulative Scores</h2>
       <ul>
         {keyValueElements}
       </ul>

@@ -19,7 +19,7 @@ let clients = {};
 let players = [];
 
 // game parameters, which can be changed
-let totalRounds = 1;
+let totalRounds = 2;
 let roundCount = totalRounds - 1;
 let countdownInterval = null;
 let currentGame = null;
@@ -180,10 +180,18 @@ wsServer.on("request", function (request) {
   const connection = request.accept(null, request.origin);
   const uniqueID = getUniqueID();
   clients[uniqueID] = new Client(connection);
-  //   console.log("new server connection detected");
+  // console.log("new server connection detected");
 
   // handles when a client disconnects
   connection.on("close", function (connection) {
+    for (key in clients) {
+      clients[key].getConnection().sendUTF(
+        JSON.stringify({
+          type: "user-disconnected",
+          user: clients[uniqueID].getUsername(),
+        })
+      );
+    }
     // remove the player from our data structures
     players = players.filter(
       (player) => player !== clients[uniqueID].getUsername()
@@ -194,6 +202,10 @@ wsServer.on("request", function (request) {
     if (players.length < 2) {
       terminateGame();
     } else {
+      if (currentGame) {
+        currentGame.updatePlayers(players);
+      }
+
       console.log("user disconnected, but still continuing the game");
     }
   });
@@ -218,7 +230,7 @@ wsServer.on("request", function (request) {
           const payload = {
             type: "message",
             message: parsedData.msg,
-            user: parsedData.username,
+            user: clients[parsedData.username].getUsername(),
           };
           for (key in clients) {
             clients[key].getConnection().sendUTF(JSON.stringify(payload));
@@ -289,7 +301,7 @@ wsServer.on("request", function (request) {
                 .sendUTF(JSON.stringify(payloadStartGame));
             }
           } else if (players.length > 2) {
-            clients[parsedData.id.current]
+            clients[parsedData.id]
               .getConnection()
               .sendUTF(JSON.stringify(payloadStartGame));
           }

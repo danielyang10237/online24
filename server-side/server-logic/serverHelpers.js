@@ -16,6 +16,10 @@ class NewGame {
     this.inGame = true;
   }
 
+  updatePlayers(players) {
+    this.players = players;
+  }
+
   retrieveUsername(key) {
     return this.clients[key].getUsername();
   }

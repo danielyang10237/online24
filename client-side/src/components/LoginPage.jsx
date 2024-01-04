@@ -32,19 +32,21 @@ const LoginPage = (props) => {
 
       if (dataFromServer.type === "getting-players") {
         // update the current player list
+        console.log("got players", dataFromServer.players);
         setPlayers(dataFromServer.players);
-        // console.log("got players", dataFromServer.players);
       } else if (dataFromServer.type === "username-taken") {
         // lets the user know the username was already taken
         setUsedName(true);
       } else if (dataFromServer.type === "game-in-progress") {
         setGameInProgress(dataFromServer.round);
-        console.log('game in progress', dataFromServer.round);
+        console.log("game in progress", dataFromServer.round);
       } else if (dataFromServer.type === "username-confirmed") {
         setGameInProgress(null);
         setIsLoggedIn(true);
         setUsedName(false);
         setLeaderboard(null);
+      } else if (dataFromServer.type === "user-disconnected") {
+        console.log("user disconnected", dataFromServer.user);
       } else {
         console.log(
           "registered unknown message type in LoginPage",
@@ -55,7 +57,6 @@ const LoginPage = (props) => {
   };
 
   useEffect(() => {
-
     if (
       props.connectionClient.current &&
       props.connectionClient.current.readyState === W3CWebSocket.OPEN &&
@@ -63,18 +64,17 @@ const LoginPage = (props) => {
     ) {
       clientRef = props.connectionClient.current;
       console.log("WebSocket connection established");
-      setUsername(props.clientID); 
+      setUsername(props.clientID);
 
       setUpServerRecieve();
 
       // Send message to the server to get player list
       clientRef.send(
         JSON.stringify({
-          type: "retrieve-players"
+          type: "retrieve-players",
         })
       );
     }
-
   }, [props.connectionClient]);
 
   const setNewUser = (user) => {
@@ -83,7 +83,7 @@ const LoginPage = (props) => {
     const serverPackage = {
       type: "new-player",
       user: user,
-      id: props.clientID
+      id: props.clientID,
     };
     clientRef.send(JSON.stringify(serverPackage));
   };
@@ -99,7 +99,9 @@ const LoginPage = (props) => {
       {leaderboard ? <LeaderboardModal leaderboardMap={leaderboard} /> : null}
       <h1>Login Page</h1>
       {usedName ? <p>Username already taken</p> : null}
-      {gameInProgress ? <p>Game in progress, currently round {gameInProgress}</p> : null}
+      {gameInProgress ? (
+        <p>Game in progress, currently round {gameInProgress}</p>
+      ) : null}
       <h2>Active Players</h2>
       {players.map((player, index) => (
         <p key={index}>{player}</p>

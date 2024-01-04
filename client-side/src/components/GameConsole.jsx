@@ -80,6 +80,9 @@ const GameConsole = (props) => {
           case "lack-of-players":
             setStartGameButton(false);
             break;
+          case "user-disconnected":
+            console.log("user disconnected", dataFromServer.user);
+            break;
           default:
             console.log("registered unknown message type", dataFromServer.type);
             break;

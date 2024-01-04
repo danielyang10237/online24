@@ -4,12 +4,8 @@ import LoginPage from "./LoginPage.jsx";
 
 const Dashboard = () => {
   const socketRef = useRef(null);
-  const [clientID, setClientID] = useState(null); 
+  const [clientID, setClientID] = useState(null);
   const [isConnected, setConnected] = useState(false);
-
-  // if (localStorage.getItem('username')) {
-    
-  // }
 
   useEffect(() => {
     let connectionAttempts = 1;
@@ -66,11 +62,27 @@ const Dashboard = () => {
     };
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleClose); // Handle page refresh
+
+    return () => {
+      window.removeEventListener("beforeunload", handleClose);
+    };
+  }, [socketRef.current]); // Run when the socket changes
+
+  const handleClose = () => {
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
+  };
+
   return (
     <div>
       <h1>Dashboard</h1>
       {isConnected ? <p>Connected!!!!</p> : <p>Connecting</p>}
-      {isConnected ? <LoginPage connectionClient={socketRef} clientID={clientID} /> : null}
+      {isConnected ? (
+        <LoginPage connectionClient={socketRef} clientID={clientID} />
+      ) : null}
     </div>
   );
 };

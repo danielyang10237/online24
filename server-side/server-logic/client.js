@@ -9,7 +9,6 @@ class Client {
     reset() {
         this.points = 0;
         this.inGame = false;
-        this.username = "guest";
     }
 
     setUsername(username) {

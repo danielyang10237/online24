@@ -12,7 +12,7 @@ const LeaderboardModal = ({ leaderboardMap }) => {
   };
 
   const sortedUsers = Object.entries(leaderboardMap)
-    .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
+    .sort(([, scoreA], [, scoreB]) => scoreB - scoreA) // Sort by score in descending order
     .map(([user, score]) => ({ user, score }));
 
   return (

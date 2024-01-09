@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import LoginPage from "./LoginPage.jsx";
+import "../css/loadingPage.css";
 
 const Dashboard = () => {
   const socketRef = useRef(null);
   const [clientID, setClientID] = useState(null);
   const [isConnected, setConnected] = useState(false);
+  const [text, setText] = useState("Connecting");
 
   useEffect(() => {
     let connectionAttempts = 1;
@@ -76,14 +78,35 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setText((prevText) => {
+        switch (prevText) {
+          case "Connecting":
+            return "Connecting.";
+          case "Connecting.":
+            return "Connecting..";
+          case "Connecting..":
+            return "Connecting...";
+          default:
+            return "Connecting";
+        }
+      });
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div>
-      <h1>Dashboard</h1>
-      {isConnected ? <p>Connected!!!!</p> : <p>Connecting</p>}
+    <>
       {isConnected ? (
         <LoginPage connectionClient={socketRef} clientID={clientID} />
-      ) : null}
-    </div>
+      ) : (
+        <div className="center">
+          <p className="connecting-text">{text}</p>
+        </div>
+      )}
+    </>
   );
 };
 

@@ -19,18 +19,38 @@ let clients = {};
 let players = [];
 
 // game parameters, which can be changed
-let totalRounds = 2;
+let totalRounds = 5;
 let roundCount = totalRounds - 1;
 let countdownInterval = null;
 let currentGame = null;
 
+const getPointsMap = () => {
+  // get the points for all the clients
+  const playerPoints = [];
+  for (key in clients) {
+    if (clients[key].isInGame()) {
+      playerPoints.push({
+        name: clients[key].getUsername(),
+        points: clients[key].getPoints(),
+      });
+    }
+  }
+  //   console.log("points map", pointsMap);
+  return playerPoints;
+};
+
 // updates every connected client with the current players
 const updatePlayers = () => {
-  for (key in clients) {
-    // console.log("clients list", key, clients[key]);
+  for (let key in clients) {
+    // console.log(
+    //   "UPDATING PLAYERS - just sent to",
+    //   clients[key].getUsername(),
+    //   key,
+    //   clients[key].getConnection().remoteAddress
+    // );
     const payload = {
       type: "getting-players",
-      players: players,
+      players: getPointsMap(),
     };
     clients[key].getConnection().sendUTF(JSON.stringify(payload));
   }
@@ -76,19 +96,9 @@ const startNewRound = () => {
   }, 1000);
 };
 
-const getPointsMap = () => {
-  // get the points for all the clients
-  const pointsMap = {};
-  for (key in clients) {
-    if (clients[key].isInGame()) {
-      pointsMap[clients[key].getUsername()] = clients[key].getPoints();
-    }
-  }
-  return pointsMap;
-};
-
 // function to end and clean up the round
 const roundOver = () => {
+  //   console.log("roundover", roundCount);
   const payload = {
     type: "round-over",
     points: getPointsMap(),
@@ -131,6 +141,8 @@ const roundOver = () => {
 // ends the game and prepare for a new game
 const terminateGame = () => {
   // console.log("current game", currentGame);
+
+  //   console.log("terminating the game");
 
   roundCount = 0; // this is to prevent the game from starting a new round
 
@@ -176,37 +188,57 @@ const terminateGame = () => {
 
 // sets up the websocket functionality
 wsServer.on("request", function (request) {
+
+  // reject connection if there is already more than 50 clients
+
+  if (Object.keys(clients).length >= 50) {
+    request.reject();
+    console.log("connection rejected");
+    return;
+  }
+
   // log and store when new client connects
   const connection = request.accept(null, request.origin);
   const uniqueID = getUniqueID();
   clients[uniqueID] = new Client(connection);
-  // console.log("new server connection detected");
+  console.log("new server connection detected", uniqueID);
 
   // handles when a client disconnects
   connection.on("close", function (connection) {
-    for (key in clients) {
-      clients[key].getConnection().sendUTF(
-        JSON.stringify({
-          type: "user-disconnected",
-          user: clients[uniqueID].getUsername(),
-        })
-      );
-    }
-    // remove the player from our data structures
-    players = players.filter(
-      (player) => player !== clients[uniqueID].getUsername()
-    );
-    delete clients[uniqueID];
-    updatePlayers();
-    // if there are less than 2 players, end the game
-    if (players.length < 2) {
-      terminateGame();
-    } else {
-      if (currentGame) {
-        currentGame.updatePlayers(players);
+    if (clients[uniqueID].getUsername() !== "guest") {
+      for (key in clients) {
+        clients[key].getConnection().sendUTF(
+          JSON.stringify({
+            type: "user-disconnected",
+            user: clients[uniqueID].getUsername(),
+          })
+        );
       }
 
-      console.log("user disconnected, but still continuing the game");
+      players = players.filter(
+        (player) => player !== clients[uniqueID].getUsername()
+      );
+
+      delete clients[uniqueID];
+
+      updatePlayers();
+      // if there are less than 2 players, end the game
+      if (currentGame || countdownInterval) {
+        if (currentGame && players.length >= 2) {
+          currentGame.updatePlayers(players);
+        } else {
+          terminateGame();
+        }
+      } else if (players.length < 2) {
+        for (key in clients) {
+          const payload = {
+            type: "lack-of-players",
+          };
+          clients[key].getConnection().sendUTF(JSON.stringify(payload));
+        }
+      }
+    } else {
+      delete clients[uniqueID];
     }
   });
 
@@ -240,11 +272,15 @@ wsServer.on("request", function (request) {
           // user wants to know the current players, so we send it to them
           const payloadPlayers = {
             type: "getting-players",
-            players: players,
+            players: getPointsMap(),
           };
           connection.sendUTF(JSON.stringify(payloadPlayers));
           break;
         case "new-player":
+          //   console.log("clients before");
+          //   for (key in clients) {
+          //     console.log(key, clients[key].getUsername());
+          //   }
           // if our players array already contains the new name, we refuse the addition
           if (players.includes(parsedData.user)) {
             // return the client that username is already taken
@@ -270,9 +306,13 @@ wsServer.on("request", function (request) {
             break;
           }
 
+          //   if (player.length >= 8) {
+          //     implementation needed
+          //   }
+
           // now we add in the new players, updates player and clients
           const username = parsedData.user;
-          console.log(username, "joined the game");
+          console.log(username, "joined the game", parsedData.id);
           players.push(username);
 
           // set the new username
@@ -282,17 +322,44 @@ wsServer.on("request", function (request) {
           clients[parsedData.id].putInGame();
 
           // update the frontend with the new user
-          updatePlayers();
           clients[parsedData.id].getConnection().sendUTF(
             JSON.stringify({
               type: "username-confirmed",
             })
           );
+
+          //   clients[parsedData.id].getConnection().sendUTF(
+          //     JSON.stringify({
+          //         type: "getting-players",
+          //         players: getPointsMap(),
+          //       })
+          //   );
+
+          updatePlayers();
+
+          //   console.log("clients after");
+          //   for (key in clients) {
+          //     console.log(key, clients[key].getUsername());
+          //   }
+          break;
+        case "change-round-count":
+          // console.log("changing round count", parsedData.roundCount);
+          // user wants to change the number of rounds, so we update the round count
+          totalRounds = parsedData.roundCount;
+          roundCount = totalRounds - 1;
+          for (key in clients) {
+            const payload = {
+              type: "round-count-changed",
+              roundCount: totalRounds,
+            };
+            clients[key].getConnection().sendUTF(JSON.stringify(payload));
+          }
           break;
         case "check-start-game":
           // let all the clients know the game can be started
           const payloadStartGame = {
             type: "can-start-game",
+            totalRounds: totalRounds,
           };
           if (players.length == 2) {
             for (key in clients) {

@@ -1,0 +1,85 @@
+.center-elements {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100%;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table,
+th,
+td {
+  border: 1px solid #ddd;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px;
+}
+
+td {
+  background-color: #a9cfcf;
+}
+
+th {
+  background-color: #04aa6d;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+tr:hover {
+  background-color: #ddd;
+}
+
+thead tr {
+  border-bottom: 2px solid #ddd;
+}
+
+.congrats-message {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.scores-from-round {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.starting-game-message {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.choosing-round-count {
+  display: flex
+}
+
+.round-count-button {
+  background-color: rgb(224, 207, 245);
+  margin: 8px;
+  margin-bottom: 18px;
+}
+
+.start-game-button {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.start-game-button:hover {
+  background-color: rgb(196, 203, 201);
+}
+
+.round-select {
+  background-color: rgb(63, 40, 66);
+  color: white;
+}

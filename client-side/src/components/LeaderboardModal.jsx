@@ -1,39 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import "../css/leaderboard.css";
 
 const LeaderboardModal = ({ leaderboardMap }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const openModal = () => {
-    setIsOpen(true);
-  };
+  const [isOpen, setIsOpen] = useState(true);
 
   const closeModal = () => {
     setIsOpen(false);
   };
 
-  const sortedUsers = Object.entries(leaderboardMap)
-    .sort(([, scoreA], [, scoreB]) => scoreB - scoreA) // Sort by score in descending order
-    .map(([user, score]) => ({ user, score }));
+  // Sort the array by score in descending order
+  const sortedUsers = leaderboardMap.sort((a, b) => b.points - a.points);
 
   return (
-    <div>
-      <button onClick={openModal}>Open Leaderboard</button>
+    <>
       {isOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button onClick={closeModal}>Close</button>
-            <h2>Leaderboard</h2>
-            <ul>
-              {sortedUsers.map((userData, index) => (
-                <li key={index}>
-                  <span>{userData.user}</span> - <span>{userData.score}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+              <h2>Leaderboard</h2>
+              <ul className="leaderboard">
+                {sortedUsers.map((userData, index) => (
+                  <li key={index} className={`user-score rank-${index + 1}`}>
+                    <span className="username">{userData.name}</span>{" "}
+                    <span className="score">{userData.points}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button className="closeLeaderboard" onClick={closeModal}>Close</button>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

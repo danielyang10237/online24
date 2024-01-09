@@ -97,6 +97,7 @@ class NewGame {
       this.clients[key].add_points(this.roundPoints[this.retrieveUsername(key)]);
     }
 
+    // console.log("calling parent function");
     // call parent function to sweep the round
     this.endRound();
   }

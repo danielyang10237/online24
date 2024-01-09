@@ -1,4 +1,4 @@
-import {React, useEffect} from 'react';
+import {React } from 'react';
 
 const KeyValueList = ({ data }) => {
   // Mapping through the object keys and creating list elements for each key-value pair

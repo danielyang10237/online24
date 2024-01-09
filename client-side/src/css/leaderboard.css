@@ -1,0 +1,71 @@
+.modal-overlay {
+    width: 80%;
+    max-width: 300px;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px; 
+    margin-bottom: 30px;
+}
+
+.modal-content {
+  padding: 20px;  
+}
+
+.closeLeaderboard {
+    margin-bottom: 10px;
+    max-width: 80px;
+}
+
+.closeLeaderboard:hover {
+    cursor: pointer;
+    background-color: #ccc;
+}
+
+.modal-content h2 {
+  color: #333;
+  text-align: center;
+}
+
+.leaderboard {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.leaderboard li {
+  background: #ddd; /* Default light background */
+  margin-bottom: 2px;
+  padding: 10px;
+  border-radius: 3px;
+}
+
+/* Dynamic background based on rank */
+.leaderboard li.rank-1 {
+  background: #4caf50;
+}
+.leaderboard li.rank-2 {
+  background: #8bc34a;
+}
+.leaderboard li.rank-3 {
+  background: #cddc39;
+}
+.leaderboard li.rank-4,
+.leaderboard li.rank-5 {
+  background: #d4e157;
+}
+/* Continue with lighter shades for lower ranks if needed */
+
+.username {
+  font-weight: bold;
+}
+
+.score {
+  float: right;
+}
+
+/* Clear float */
+.leaderboard li::after {
+  content: "";
+  display: table;
+  clear: both;
+}

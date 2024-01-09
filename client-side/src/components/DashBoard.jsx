@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import LoginPage from "./LoginPage.jsx";
+import "../css/loadingPage.css";
 
 const Dashboard = () => {
   const socketRef = useRef(null);
+  const [clientID, setClientID] = useState(null);
   const [isConnected, setConnected] = useState(false);
-  const clientID = useRef(null);
+  const [text, setText] = useState("Connecting");
 
   useEffect(() => {
     let connectionAttempts = 1;
@@ -24,7 +26,7 @@ const Dashboard = () => {
           const dataFromServer = JSON.parse(message.data);
 
           if (dataFromServer.type === "connected") {
-            clientID.current = dataFromServer.clientID;
+            setClientID(dataFromServer.id);
             setConnected(true);
           } else if (dataFromServer.type === "testing") {
             console.log("testing message received");
@@ -33,7 +35,6 @@ const Dashboard = () => {
 
         newClient.onclose = () => {
           console.log("WebSocket Client Disconnected");
-          clientID.current = null;
           setConnected(false);
           if (connectionAttempts < maxConnectionAttempts) {
             connectionAttempts += 1;
@@ -63,12 +64,49 @@ const Dashboard = () => {
     };
   }, []);
 
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleClose); // Handle page refresh
+
+    return () => {
+      window.removeEventListener("beforeunload", handleClose);
+    };
+  }, [socketRef.current]); // Run when the socket changes
+
+  const handleClose = () => {
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setText((prevText) => {
+        switch (prevText) {
+          case "Connecting":
+            return "Connecting.";
+          case "Connecting.":
+            return "Connecting..";
+          case "Connecting..":
+            return "Connecting...";
+          default:
+            return "Connecting";
+        }
+      });
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div>
-      <h1>Dashboard</h1>
-      {isConnected ? <p>Connected!!!!</p> : <p>Connecting</p>}
-      {isConnected ? <LoginPage connectionClient={socketRef} userID={clientID} /> : null}
-    </div>
+    <>
+      {isConnected ? (
+        <LoginPage connectionClient={socketRef} clientID={clientID} />
+      ) : (
+        <div className="center">
+          <p className="connecting-text">{text}</p>
+        </div>
+      )}
+    </>
   );
 };
 

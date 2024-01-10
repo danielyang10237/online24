@@ -15,7 +15,7 @@ const Dashboard = () => {
 
     const tryConnect = () => {
       if (!socketRef.current || socketRef.current.readyState === 3) {
-        const newClient = new W3CWebSocket("ws://localhost:8000");
+        const newClient = new W3CWebSocket("wss://online24-server.onrender.com:8000/");
         socketRef.current = newClient;
 
         newClient.onopen = () => {

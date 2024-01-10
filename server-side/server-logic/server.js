@@ -207,6 +207,8 @@ wsServer.on("request", function (request) {
 
   // handles when a client disconnects
   connection.on("close", function (connection) {
+    console.log("connection closed", uniqueID, clients[uniqueID].getUsername());
+    
     if (clients[uniqueID].getUsername() !== "guest") {
       for (key in clients) {
         clients[key].getConnection().sendUTF(

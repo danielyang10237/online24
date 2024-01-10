@@ -2,13 +2,15 @@ const NewGame = require("./serverHelpers");
 const Client = require("./client");
 
 // sets up the server and the websocket connection
-const webSocketsServerPort = 8000;
 const webSocketServer = require("websocket").server;
 const http = require("http");
 
 const server = http.createServer();
-server.listen(webSocketsServerPort);
-console.log("listening on port 8000");
+const webSocketsServerPort = process.env.PORT || 8000;
+server.listen(webSocketsServerPort, () => {
+  console.log(`Server is listening on port ${webSocketsServerPort}`);
+});
+
 
 const wsServer = new webSocketServer({
   httpServer: server,

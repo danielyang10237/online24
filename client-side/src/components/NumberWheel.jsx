@@ -24,7 +24,7 @@ const NumberWheel = (props) => {
       const randomIndex = Math.floor(Math.random() * numbers.length);
       newNumbers.push(numbers[randomIndex]);
       numbers.splice(randomIndex, 1);
-    }
+    } 
     setNumberOne(newNumbers[0]);
     setNumberTwo(newNumbers[1]);
     setNumberThree(newNumbers[2]);

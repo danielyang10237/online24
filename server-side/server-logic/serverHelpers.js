@@ -37,16 +37,42 @@ class NewGame {
     const randomIndex = Math.floor(Math.random() * this.all_sequences.length);
     const number_combo = this.all_sequences[randomIndex];
 
+    // reset the timer
+    this.sendToAllUsers({
+      type: "time-update",
+      timeLeft: 50000,
+    });
+
     this.sendToAllUsers({
       type: "new-round",
       numbers: number_combo,
     });
+
+    // start giving the clients time updates
+    this.startTimeUpdateInterval();
 
     // Timer to end the round in case not everyone finds the solution
     this.roundTimer = setTimeout(() => {
       console.log("times up before everyone found solution");
       this.clearRound();
     }, round_duration);
+  }
+
+  // New method to send time updates
+  startTimeUpdateInterval() {
+    this.timeUpdateInterval = setInterval(() => {
+      const elapsed = Date.now() - this.startTime;
+      const timeLeft = Math.max(round_duration - elapsed, 0);
+
+      this.sendToAllUsers({
+        type: "time-update",
+        timeLeft: timeLeft,
+      });
+
+      if (timeLeft <= 0) {
+        clearInterval(this.timeUpdateInterval);
+      }
+    }, 500); // Update every second
   }
 
   // function to handle when a user finds the solution
@@ -82,7 +108,10 @@ class NewGame {
 
     // give all the players who didn't find the solution 0 points
     for (key in this.clients) {
-      if (!this.roundPoints[this.retrieveUsername(key)] && this.clients[key].isInGame()) {
+      if (
+        !this.roundPoints[this.retrieveUsername(key)] &&
+        this.clients[key].isInGame()
+      ) {
         this.roundPoints[this.retrieveUsername(key)] = 0;
         this.sendToAllUsers({
           type: "user-found-solution",
@@ -92,9 +121,14 @@ class NewGame {
       }
     }
 
+    // stop giving time updates
+    clearInterval(this.timeUpdateInterval);
+
     // add the round points to the total points
     for (key in this.clients) {
-      this.clients[key].add_points(this.roundPoints[this.retrieveUsername(key)]);
+      this.clients[key].add_points(
+        this.roundPoints[this.retrieveUsername(key)]
+      );
     }
 
     // console.log("calling parent function");
@@ -105,6 +139,10 @@ class NewGame {
   // function to terminate the round when a user quits
   terminateRound() {
     console.log("user quit, terminating round");
+    if (this.timeUpdateInterval) {
+      clearInterval(this.timeUpdateInterval);
+    }
+
     if (this.roundTimer) {
       clearTimeout(this.roundTimer);
       this.clearRound();

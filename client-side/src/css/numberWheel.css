@@ -1,15 +1,12 @@
-.game-container {
-  }
-
-  .row {
+.row {
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .row-2 {
-    margin-top: -10px;
-    margin-bottom: -10px;
+    margin-top: -15px;
+    margin-bottom: -15px;
   }
   
   .row-3 {
@@ -17,10 +14,10 @@
   }
 
   .number {
-    margin-right: 35px;
-    margin-left: 35px;
-    width: 90px; /* Adjust based on your design */  
-    height: 90px; /* Adjust based on your design */
+    margin-right: 40px;
+    margin-left: 40px;
+    width: 100px; /* Adjust based on your design */  
+    height: 100px; /* Adjust based on your design */
   }
 
   /* Assuming each button has a class "btn" for common styling */
@@ -54,8 +51,8 @@
   
   .operator {
     background-color: #9acd32; /* Yellow-green background */
-    width: 70px; /* Adjust based on your design */  
-    height: 70px; /* Adjust based on your design */
+    width: 80px; /* Adjust based on your design */  
+    height: 80px; /* Adjust based on your design */
     margin: 5px;
     margin-bottom: 15px;
   }
@@ -73,7 +70,7 @@
     color: white;
   }
 
-  .scramble {
+  .scramble { 
     border-radius: 0;
     background-color: rgb(167, 167, 242);
     cursor: pointer;

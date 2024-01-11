@@ -210,7 +210,7 @@ const LoginPage = (props) => {
                           ? "my-message"
                           : "other-message"
                       }`}
-                      key={message.key}
+                      key={message.key + index}
                     >
                       <div key={index} className={`message`}>
                         <span className="username">{message.user}</span>

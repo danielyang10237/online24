@@ -1,5 +1,6 @@
 import { React, useState, useEffect } from "react";
 import NumberWheel from "./NumberWheel.jsx";
+import TimerBar from "./TimerBar.jsx";
 import "../css/gameConsole.css";
 import "../css/numberWheel.css";
 
@@ -14,6 +15,8 @@ const GameConsole = (props) => {
 
   const [roundUserScores, setRoundUserScores] = useState([]);
   const [numbers, setNumbers] = useState([]);
+
+  const [timeLeft, setTimeLeft] = useState(50000);
 
   useEffect(() => {
     clientID = props.userID;
@@ -81,6 +84,10 @@ const GameConsole = (props) => {
             break;
           case "round-count-changed":
             setRoundNumber(dataFromServer.roundCount);
+            break;
+          case "time-update":
+            setTimeLeft(dataFromServer.timeLeft);
+            console.log("time left", dataFromServer.timeLeft);
             break;
           default:
             console.log("registered unknown message type", dataFromServer.type);
@@ -163,17 +170,25 @@ const GameConsole = (props) => {
                 10 Rounds
               </button>
             </div>
-            <button className="start-game-button" onClick={() => startGame()}>Start Game</button>
+            <button className="start-game-button" onClick={() => startGame()}>
+              Start Game
+            </button>
           </>
         ) : (
-          <button disabled>Start Game</button>
+          <>
+            <button disabled>Start Game</button>
+            <p className="more-players-needed">Need at least two players to start</p>
+          </>
         )
       ) : gameStartCount >= 0 ? (
         <p className="starting-game-message">
           Starting game in {gameStartCount}
         </p>
       ) : gameStartCount === -2 ? (
-        <NumberWheel numbers={numbers} isWin={foundSolution} />
+        <>
+          <TimerBar timeLeft={timeLeft} />
+          <NumberWheel numbers={numbers} isWin={foundSolution} />
+        </>
       ) : (
         <>
           <p className="congrats-message">Congrats.. Waiting for next round!</p>

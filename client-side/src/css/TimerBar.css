@@ -1,0 +1,14 @@
+.timer-bar-container {
+    width: 100%;
+    border: 1px solid black;
+    height: 30px;
+    margin-bottom: 30px;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+}
+
+.timer-bar-inner {
+    background-color: rgb(237, 140, 125);
+    height: 100%;
+    border-radius: 8px;
+}

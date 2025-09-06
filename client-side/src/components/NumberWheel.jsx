@@ -273,7 +273,7 @@ const NumberWheel = (props) => {
     <div className="game-container">
       <div className="row row-1">
         <button
-          className={`btn number ${numberOne > 0 ? "" : "hidden"}`}
+          className={`btn number ${numberOne >= 0 ? "" : "hidden"}`}
           id="number1"
           onClick={() => handleNumber(numberOne, 1)}
         >
@@ -283,14 +283,14 @@ const NumberWheel = (props) => {
       <div className="row row-2">
         <button
           id="number2"
-          className={`btn number ${numberTwo > 0 ? "" : "hidden"}`}
+          className={`btn number ${numberTwo >= 0 ? "" : "hidden"}`}
           onClick={() => handleNumber(numberTwo, 2)}
         >
           {numberTwo}
         </button>
         <button
           id="number3"
-          className={`btn number ${numberThree > 0 ? "" : "hidden"}`}
+          className={`btn number ${numberThree >= 0 ? "" : "hidden"}`}
           onClick={() => handleNumber(numberThree, 3)}
         >
           {numberThree}
@@ -299,7 +299,7 @@ const NumberWheel = (props) => {
       <div className="row row-3">
         <button
           id="number4"
-          className={`btn number ${numberFour > 0 ? "" : "hidden"}`}
+          className={`btn number ${numberFour >= 0 ? "" : "hidden"}`}
           onClick={() => handleNumber(numberFour, 4)}
         >
           {numberFour}
